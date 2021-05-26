@@ -1,26 +1,41 @@
 import { axiod } from "./deps.ts";
 import { ArangoCursor, CursorOptions } from "./cursor.ts";
 
+/**
+ * Define Document methods.
+ */
 export interface DocumentBase {
   update(): Promise<void>;
   delete(): Promise<boolean>;
 }
 
+/**
+ * Join DocumentData<T> and DocumentBase
+ */
 export type Document<T> =
   & DocumentData<T>
   & DocumentBase;
 
+/**
+ * Document ID fields
+ */
 export type DocumentID = { _id: string; _key: string; _rev: string };
+
+/**
+ * Document Data and ID fields.
+ */
 export type DocumentData<T> = T & DocumentID;
 
-export type DocumentFilter<T> = {
-  [Property in keyof DocumentData<T>]: string | DocumentData<T>[Property];
-};
-
+/**
+ * An object representing a collection on the ArangoDB server.
+ */
 export class Collection<T> {
-  constructor(private ax: typeof axiod, public readonly name: string) {
-    //
-  }
+  constructor(private ax: typeof axiod, public readonly name: string) {}
+  /**
+   * Get a document directly by its key
+   * @param key The document key
+   * @returns The document specified by the key.
+   */
   public async get(key: string): Promise<Document<T>> {
     const res = await this.ax.get(`/_api/document/${this.name}/${key}`);
     if (res.status != 200) {
@@ -65,6 +80,11 @@ export class Collection<T> {
       },
     });
   }
+  /**
+   * Create a new document in the collection.
+   * @param data The initial document data.
+   * @returns The document, as it exists on the server.
+   */
   public async create(data: T): Promise<Document<T>> {
     const res = await this.ax.post(`/_api/document/${this.name}`, data);
     switch (res.status) {
@@ -79,6 +99,11 @@ export class Collection<T> {
       }
     }
   }
+  /**
+   * Find multiple documents matching the filter provided.
+   * @param filter Partial document data to filter results by.
+   * @returns Documents matching the filter provided.
+   */
   public async find(
     filter: Partial<DocumentData<T>>,
   ): Promise<Document<T>[]> {
@@ -95,6 +120,12 @@ export class Collection<T> {
     }\n\tRETURN doc`;
     return await this.query(query);
   }
+  /**
+   * Run a query, returning the results as Document objects.
+   * @param aql The query string to execute.
+   * @param options Cursor options.
+   * @returns The collected results of the query, converted to Document objects.
+   */
   public async query(
     aql: string,
     options?: CursorOptions,
@@ -102,6 +133,9 @@ export class Collection<T> {
     const res = await new ArangoCursor<T>(this.ax, aql, options).collect();
     return res.map((d) => this.makeDocument(d));
   }
+  /**
+   * Truncate the collection.
+   */
   public async truncate(): Promise<void> {
     const res = await this.ax.put(`/_api/collection/${this.name}/truncate`);
     if (res.data.error) {

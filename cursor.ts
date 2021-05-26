@@ -1,6 +1,9 @@
 import { axiod } from "./deps.ts";
 import { DocumentData } from "./collection.ts";
 
+/**
+ * A Cursor object from the server.
+ */
 export interface Cursor<T> {
   result: DocumentData<T>[];
   id: string;
@@ -10,15 +13,21 @@ export interface Cursor<T> {
   count: number;
 }
 
+/**
+ * Options for a Cursor.
+ */
 export interface CursorOptions {
   count?: boolean;
   batchSize?: number;
 }
 
+/**
+ * A Cursor object capable of executing a query and returning the results sets.
+ */
 export class ArangoCursor<T> implements AsyncIterable<DocumentData<T>[]> {
-  id: string | null;
+  private id: string | null;
   private options: CursorOptions;
-  hasMore: boolean;
+  private hasMore: boolean;
   constructor(
     private readonly ax: typeof axiod,
     public readonly query: string,
@@ -32,6 +41,10 @@ export class ArangoCursor<T> implements AsyncIterable<DocumentData<T>[]> {
   private getOptions(): { query: string } & CursorOptions {
     return Object.assign({}, this.options, { query: this.query });
   }
+  /**
+   * Collect all of the results sets and return them as a single array.
+   * @returns All of the results sets from this query flattened into a 1D array.
+   */
   public async collect(): Promise<DocumentData<T>[]> {
     const res: DocumentData<T>[] = [];
     for await (const docs of this) {

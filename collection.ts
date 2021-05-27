@@ -130,7 +130,8 @@ export class Collection<T> {
     aql: string,
     options?: CursorOptions,
   ): Promise<Document<T>[]> {
-    const res = await new ArangoCursor<T>(this.ax, aql, options).collect();
+    const res = await new ArangoCursor<DocumentData<T>>(this.ax, aql, options)
+      .collect();
     return res.map((d) => this.makeDocument(d));
   }
   /**

@@ -24,7 +24,7 @@ export interface CursorOptions {
 /**
  * A Cursor object capable of executing a query and returning the results sets.
  */
-export class ArangoCursor<T> implements AsyncIterable<DocumentData<T>[]> {
+export class ArangoCursor<T> implements AsyncIterable<T[]> {
   private id: string | null;
   private options: CursorOptions;
   private hasMore: boolean;
@@ -45,14 +45,14 @@ export class ArangoCursor<T> implements AsyncIterable<DocumentData<T>[]> {
    * Collect all of the results sets and return them as a single array.
    * @returns All of the results sets from this query flattened into a 1D array.
    */
-  public async collect(): Promise<DocumentData<T>[]> {
-    const res: DocumentData<T>[] = [];
+  public async collect(): Promise<T[]> {
+    const res: T[] = [];
     for await (const docs of this) {
       res.push(...docs);
     }
     return res;
   }
-  async *[Symbol.asyncIterator](): AsyncIterableIterator<DocumentData<T>[]> {
+  async *[Symbol.asyncIterator](): AsyncIterableIterator<T[]> {
     while (this.hasMore || this.id === null) {
       const res = await this.ax.post(
         `/_api/cursor${this.id === null ? "" : `/${this.id}`}`,

@@ -121,6 +121,16 @@ export class Collection<T> {
     return await this.query(query);
   }
   /**
+   * Find the first document matching the filter provided.
+   * @param filter Partial document data to filter results by.
+   * @returns A document matching the filter provided.
+   */
+  public async findOne(
+    filter: Partial<DocumentData<T>>,
+  ): Promise<Document<T> | undefined> {
+    return (await this.find(filter))[0];
+  }
+  /**
    * Run a query, returning the results as Document objects.
    * @param aql The query string to execute.
    * @param options Cursor options.

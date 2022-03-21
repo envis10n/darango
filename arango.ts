@@ -1,5 +1,6 @@
 import { axiod } from "./deps.ts";
 import { Collection } from "./collection.ts";
+import { EdgeCollection } from "./edge.ts";
 import { ArangoCursor, CursorOptions } from "./cursor.ts";
 
 /**
@@ -98,7 +99,18 @@ export class Arango {
     return new Collection(this.ax, name);
   }
   /**
-   * 
+   * Get an existing Edge collection by name.
+   * @param name The name of the edge collection.
+   * @returns An EdgeCollection instance.
+   */
+  public async edgeCollection<T, F>(
+    name: string,
+  ): Promise<EdgeCollection<T, F>> {
+    const res = await this.ax.get(`/_api/collection/${name}`);
+    if (res.status != 200) throw new Error("Unable to find collection.");
+    return new EdgeCollection(this.ax, name);
+  }
+  /**
    * @param name The name of the collection.
    * @param edge Optional. Make this an edge collection.
    * @returns The new collection as a Collection instance.

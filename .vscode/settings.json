@@ -1,9 +1,11 @@
 {
-    "deno.enable": true,
-    "deno.lint": true,
-    "deno.unstable": true,
-    "editor.tabSize": 2,
-    "deno.suggest.imports.hosts": {
-        "https://deno.land": true
-    }
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": true,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
+  "deno.suggest.imports.hosts": {
+    "https://deno.land": true
+  }
 }

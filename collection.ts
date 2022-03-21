@@ -1,5 +1,6 @@
 import { axiod } from "./deps.ts";
 import { ArangoCursor, CursorOptions } from "./cursor.ts";
+import { Edge, EdgeResponse } from "./edge.ts";
 
 /**
  * Define Document methods.
@@ -8,6 +9,13 @@ export interface DocumentBase {
   update(): Promise<void>;
   delete(): Promise<boolean>;
 }
+
+export type DocumentResponse<T> = {
+  code?: number;
+  error?: boolean;
+  errorMessage?: string;
+  errorNum?: number;
+} & Partial<Document<T>>;
 
 /**
  * Join DocumentData<T> and DocumentBase

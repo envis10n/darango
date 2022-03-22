@@ -9,32 +9,49 @@ import { Arango } from "https://deno.land/x/darango/mod.ts";
 ```
 
 ## Features
+
 - [x] Collection create, get, and truncate.
 - [x] Document get, find, update, delete.
 - [x] AQL query support, returning the result set as a specific generic type.
 - [x] AQL query on a collection, returning results as Documents.
+- [x] Graph get, traversal, and shortest_path.
+- [x] Edge collection get.
 
-*More planned for future releases.*
+_More planned for future releases._
 
 ## Usage
+
 Here are some examples for getting a client instance.
 
 ### Authenticating
+
 #### Basic Auth
+
 ```ts
 import { Arango } from "https://deno.land/x/darango/mod.ts";
 
 // Connect and obtain a JWT token from the server by providing basic auth details.
-const arango = await Arango.basicAuth({ uri: "http://localhost:8529/_db/some_db", username: "arango", password: "arango" });
+const arango = await Arango.basicAuth({
+  uri: "http://localhost:8529/_db/some_db",
+  username: "arango",
+  password: "arango",
+});
 ```
+
 #### JWT Auth
+
 ```ts
 import { Arango } from "https://deno.land/x/darango/mod.ts";
 
 // Connect and test that the token works by checking for DBs the token can access.
-const arango = await Arango.jwtAuth({ uri: "http://localhost:8529/_db/some_db", jwt: "JWT Token Here" });
+const arango = await Arango.jwtAuth({
+  uri: "http://localhost:8529/_db/some_db",
+  jwt: "JWT Token Here",
+});
 ```
+
 ### Getting a Collection
+
 ```ts
 // Some dummy interface to use as the document structure.
 interface TestType {
@@ -48,8 +65,13 @@ const collection = await arango.collection<TestType>("test");
 
 const collection = await arango.createCollection<TestType>("test");
 ```
-The generic type provided for `Collection<T>` will be used as the document type. `Document<T>` is a joined type including `_id`, `_key`, and `_rev` fields, along with your own interface's fields.
+
+The generic type provided for `Collection<T>` will be used as the document type.
+`Document<T>` is a joined type including `_id`, `_key`, and `_rev` fields, along
+with your own interface's fields.
+
 ### Modifying a Document
+
 ```ts
 // Some dummy interface to use as the document structure.
 interface TestType {
@@ -71,8 +93,11 @@ await doc.update();
 // Delete the document. Do not use it after this, since the key will no longer exist on the server.
 await doc.delete();
 ```
+
 ### Running an AQL query
+
 #### Query with custom type definition
+
 ```ts
 // Some dummy interface to use as the document structure.
 interface TestType {
@@ -90,7 +115,9 @@ for await (const docs of cursor) {
   }
 }
 ```
+
 #### Query from collection object
+
 ```ts
 // Some dummy interface to use as the document structure.
 interface TestType {

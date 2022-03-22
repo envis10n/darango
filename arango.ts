@@ -2,6 +2,7 @@ import { axiod } from "./deps.ts";
 import { Collection } from "./collection.ts";
 import { EdgeCollection } from "./edge.ts";
 import { ArangoCursor, CursorOptions } from "./cursor.ts";
+import { Graph } from "./graph.ts";
 
 /**
  * Base options required.
@@ -109,6 +110,11 @@ export class Arango {
     const res = await this.ax.get(`/_api/collection/${name}`);
     if (res.status != 200) throw new Error("Unable to find collection.");
     return new EdgeCollection(this.ax, name);
+  }
+  public async graph(name: string): Promise<Graph> {
+    const res = await this.ax.get(`/_api/gharial/${name}`);
+    if (res.status == 404) throw new Error("Unable to find graph.");
+    else return new Graph(this.ax, name);
   }
   /**
    * @param name The name of the collection.

@@ -1,8 +1,6 @@
 import { axiod } from "./deps.ts";
 import { ArangoCursor } from "./cursor.ts";
-import { Document } from "./collection.ts";
-
-// TODO: Add graph class and allow for traversals
+import { DocumentData } from "./collection.ts";
 
 export interface EdgeDefinition {
   collection: string;
@@ -64,7 +62,7 @@ export class Graph {
     startVertex: string,
     direction: "OUTBOUND" | "INBOUND" | "ANY",
     options?: GraphTraversalOptions<T>,
-  ): ArangoCursor<T> {
+  ): ArangoCursor<DocumentData<T>> {
     if (options == undefined) options = {};
     let query = "FOR vertex IN";
     if (options.limit != undefined) {
@@ -94,7 +92,7 @@ export class Graph {
     startVertex: string,
     endVertex: string,
     direction: "OUTBOUND" | "INBOUND" | "ANY",
-  ): ArangoCursor<T> {
+  ): ArangoCursor<DocumentData<T>> {
     const query =
       `FOR vertex IN ${direction} SHORTEST_PATH '${startVertex}' TO '${endVertex}' GRAPH '${this.name}'\n\tRETURN vertex`;
     return new ArangoCursor(this.ax, query);

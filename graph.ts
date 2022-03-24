@@ -1,6 +1,6 @@
 import { axiod } from "./deps.ts";
 import { ArangoCursor } from "./cursor.ts";
-import { DocumentData } from "./collection.ts";
+import { Collection, DocumentData } from "./collection.ts";
 
 export interface EdgeDefinition {
   collection: string;
@@ -43,13 +43,56 @@ export interface GraphTraversalOptions<T> {
   limit?: number;
 }
 
+export interface EdgeDefinitions {
+  collection: string;
+  from: string[];
+  to: string[];
+}
+
+export interface GraphCreateOptions {
+  name: string;
+  edgeDefinitions: EdgeDefinitions[];
+  orphanCollections: string[];
+  isSmart: boolean;
+  isDisjoint: boolean;
+  options: {
+    smartGraphAttribute?: string;
+    satellites?: string[];
+    numberOfShards?: number;
+    replicationFactor?: string;
+    writeConcern?: number;
+  };
+}
+
+/**
+ * Represents an ArangoDB Graph.
+ */
 export class Graph {
   constructor(
     private readonly ax: typeof axiod,
     public readonly name: string,
-  ) {
-    //
+  ) {}
+  /**
+   * List all vertex collections.
+   * @returns An array containing all vertex collections using a default type.
+   */
+  public async vertexCollections(): Promise<
+    Collection<{ [key: string]: any }>[]
+  > {
+    const res = await this.ax.get<{ collections: string[] }>(
+      `/_api/gharial/${this.name}/vertex`,
+    );
+    if (res.status == 404) throw new Error("Unable to find graph.");
+    const fin: Collection<{ [key: string]: any }>[] = [];
+    for (const col of res.data.collections) {
+      fin.push(new Collection(this.ax, col));
+    }
+    return fin;
   }
+  /**
+   * Get the definition of this graph.
+   * @returns The definition of this graph.
+   */
   public async get(): Promise<GraphDefinition> {
     const res = await this.ax.get<GraphGetResponse>(
       `/_api/gharial/${this.name}`,
@@ -58,6 +101,13 @@ export class Graph {
     if (data.code == 404) throw new Error(data.errorMessage);
     else return data.graph;
   }
+  /**
+   * Traverse the graph.
+   * @param startVertex The vertex node to start the traversal at.
+   * @param direction The direction to follow from the starting node.
+   * @param options Options for the traversal.
+   * @returns A cursor over any returned vertices.
+   */
   public traversal<T>(
     startVertex: string,
     direction: "OUTBOUND" | "INBOUND" | "ANY",
@@ -88,6 +138,13 @@ export class Graph {
     query += "RETURN vertex";
     return new ArangoCursor(this.ax, query);
   }
+  /**
+   * Find the shortest path between a start and end vertex node.
+   * @param startVertex The vertex node to start at.
+   * @param endVertex The vertex node to end at.
+   * @param direction The direction to follow from the starting node.
+   * @returns A cursor over returned vertices.
+   */
   public shortestPath<T>(
     startVertex: string,
     endVertex: string,

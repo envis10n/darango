@@ -2,7 +2,7 @@ import { axiod } from "./deps.ts";
 import { Collection } from "./collection.ts";
 import { EdgeCollection } from "./edge.ts";
 import { ArangoCursor, CursorOptions } from "./cursor.ts";
-import { Graph } from "./graph.ts";
+import { EdgeDefinitions, Graph, GraphCreateOptions } from "./graph.ts";
 
 /**
  * Base options required.
@@ -137,6 +137,51 @@ export class Arango {
         );
       default:
         return new Collection(this.ax, name);
+    }
+  }
+  /**
+   * Get all graphs stored on this instance.
+   * @returns An array of all graphs.
+   */
+  public async listGraphs(): Promise<Graph[]> {
+    const res = await this.ax.get<{ graphs: [{ name: string }] }>(
+      "/_api/gharial",
+    );
+    if (res.status != 200) throw new Error("Unable to get graph list.");
+    const graphs: Graph[] = [];
+    for (const g of res.data.graphs) {
+      graphs.push(await this.graph(g.name));
+    }
+    return graphs;
+  }
+  /**
+   * Create a graph on this instance.
+   * @param name The name of the graph.
+   * @param edges Edge definitions for this graph.
+   * @param orphans Orphaned vertex collections.
+   * @returns The created graph.
+   */
+  public async createGraph(
+    name: string,
+    edges: EdgeDefinitions[],
+    ...orphans: string[]
+  ): Promise<Graph> {
+    const opts: GraphCreateOptions = {
+      name,
+      edgeDefinitions: edges,
+      orphanCollections: orphans,
+      isSmart: false,
+      isDisjoint: false,
+      options: {},
+    };
+    const res = await this.ax.post(`/_api/gharial`, opts);
+    switch (res.status) {
+      case 400:
+      case 403:
+      case 409:
+        throw new Error(res.data.errorMessage);
+      default:
+        return await this.graph(name);
     }
   }
 }

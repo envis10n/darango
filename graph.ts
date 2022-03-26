@@ -41,6 +41,7 @@ export interface GraphTraversalOptions<T> {
   prune?: Partial<T>;
   filter?: Partial<T>;
   limit?: number;
+  min?: number;
 }
 
 export interface EdgeDefinitions {
@@ -116,7 +117,9 @@ export class Graph {
     if (options == undefined) options = {};
     let query = "FOR vertex IN";
     if (options.limit != undefined) {
-      query += ` 1..${options.limit} ${direction} `;
+      query += ` ${
+        options.min != undefined ? options.min : 1
+      }..${options.limit} ${direction} `;
     } else {
       query += ` ${direction} `;
     }
